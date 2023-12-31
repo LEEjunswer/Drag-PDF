@@ -113,99 +113,7 @@ class _HomeScreenDesktopState extends State<HomeScreenDesktop>
                   )
                 ],
               ),
-              body: viewModel.thereAreFilesLoaded()
-                  ? ReorderableListView.builder(
-                      proxyDecorator: (child, index, animation) =>
-                          ColorFiltered(
-                              colorFilter: ColorFilter.mode(
-                                  Colors.blueAccent.withOpacity(0.2),
-                                  BlendMode.srcATop),
-                              child: child),
-                      itemCount:
-                          viewModel.getMergeableFilesList().numberOfFiles(),
-                      padding: const EdgeInsets.all(8),
-                      onReorderStart: (int value) =>
-                          HapticFeedback.mediumImpact(),
-                      itemBuilder: (context, position) {
-                        final file =
-                            viewModel.getMergeableFilesList().getFile(position);
-                        return Dismissible(
-                          key: Key("${file.hashCode}"),
-                          direction: DismissDirection.endToStart,
-                          onDismissed: (direction) async {
-                            viewModel.removeFileFromDisk(position);
-                            setState(() {
-                              // Then show a snackbar.
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      '${Localization.of(context).string('removed_toast')} ${file.getName()}'),
-                                ),
-                              );
-                            });
-                          },
-                          background: Container(
-                            color: ColorsApp.red,
-                            child: const Padding(
-                              padding: EdgeInsets.only(right: 30),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Icon(
-                                    Icons.delete,
-                                    color: ColorsApp.white,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          child: FileRow(
-                            file: file,
-                            removeButtonPressed: () {
-                              setState(() {
-                                viewModel.removeFileFromDiskByFile(file);
-                              });
-                            },
-                            rotateButtonPressed: () async {
-                              setState(() {
-                                Loading.show();
-                              });
-                              await viewModel.rotateImageInMemoryAndFile(file);
-                              setState(() {
-                                Loading.hide();
-                              });
-                            },
-                            resizeButtonPressed: (int width, int height) async {
-                              setState(() {
-                                Loading.show();
-                              });
-                              await viewModel.resizeImageInMemoryAndFile(
-                                  file, width, height);
-                              setState(() {
-                                Loading.hide();
-                              });
-                            },
-                            renameButtonPressed: (String name) async {
-                              await viewModel.renameFile(file, name);
-                              setState(() {
-                                Utils.printInDebug("Renamed File: $file");
-                              });
-                            },
-                          ),
-                        );
-                      },
-                      onReorder: (int oldIndex, int newIndex) {
-                        if (newIndex > oldIndex) {
-                          newIndex = newIndex - 1;
-                        }
-                        setState(() {
-                          final element =
-                              viewModel.removeFileFromList(oldIndex);
-                          viewModel.insertFileIntoList(newIndex, element);
-                        });
-                      },
-                    )
-                  : DropTarget(
+              body: DropTarget(
                       onDragDone: (detail) {
                         setState(() {
                           loadFilesOrImages(LoaderOf.dragAndDrop, detail.files);
@@ -225,7 +133,99 @@ class _HomeScreenDesktopState extends State<HomeScreenDesktop>
                         color: _dragging
                             ? Colors.blue.withOpacity(0.4)
                             : Colors.black26,
-                        child: Center(
+                        child: viewModel.thereAreFilesLoaded()
+                            ? ReorderableListView.builder(
+                          proxyDecorator: (child, index, animation) =>
+                              ColorFiltered(
+                                  colorFilter: ColorFilter.mode(
+                                      Colors.blueAccent.withOpacity(0.2),
+                                      BlendMode.srcATop),
+                                  child: child),
+                          itemCount:
+                          viewModel.getMergeableFilesList().numberOfFiles(),
+                          padding: const EdgeInsets.all(8),
+                          onReorderStart: (int value) =>
+                              HapticFeedback.mediumImpact(),
+                          itemBuilder: (context, position) {
+                            final file =
+                            viewModel.getMergeableFilesList().getFile(position);
+                            return Dismissible(
+                              key: Key("${file.hashCode}"),
+                              direction: DismissDirection.endToStart,
+                              onDismissed: (direction) async {
+                                viewModel.removeFileFromDisk(position);
+                                setState(() {
+                                  // Then show a snackbar.
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          '${Localization.of(context).string('removed_toast')} ${file.getName()}'),
+                                    ),
+                                  );
+                                });
+                              },
+                              background: Container(
+                                color: ColorsApp.red,
+                                child: const Padding(
+                                  padding: EdgeInsets.only(right: 30),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Icon(
+                                        Icons.delete,
+                                        color: ColorsApp.white,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              child: FileRow(
+                                file: file,
+                                removeButtonPressed: () {
+                                  setState(() {
+                                    viewModel.removeFileFromDiskByFile(file);
+                                  });
+                                },
+                                rotateButtonPressed: () async {
+                                  setState(() {
+                                    Loading.show();
+                                  });
+                                  await viewModel.rotateImageInMemoryAndFile(file);
+                                  setState(() {
+                                    Loading.hide();
+                                  });
+                                },
+                                resizeButtonPressed: (int width, int height) async {
+                                  setState(() {
+                                    Loading.show();
+                                  });
+                                  await viewModel.resizeImageInMemoryAndFile(
+                                      file, width, height);
+                                  setState(() {
+                                    Loading.hide();
+                                  });
+                                },
+                                renameButtonPressed: (String name) async {
+                                  await viewModel.renameFile(file, name);
+                                  setState(() {
+                                    Utils.printInDebug("Renamed File: $file");
+                                  });
+                                },
+                              ),
+                            );
+                          },
+                          onReorder: (int oldIndex, int newIndex) {
+                            if (newIndex > oldIndex) {
+                              newIndex = newIndex - 1;
+                            }
+                            setState(() {
+                              final element =
+                              viewModel.removeFileFromList(oldIndex);
+                              viewModel.insertFileIntoList(newIndex, element);
+                            });
+                          },
+                        )
+                            : Center(
                           child: Image.asset('assets/images/files/file.png'),
                         ),
                       ),
