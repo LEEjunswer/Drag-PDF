@@ -57,15 +57,19 @@ dependencies:
       path: packages/pdfx/
   platform_detail: ^3.3.1
   share_plus: ^7.2.1
+  desktop_drop: ^0.4.4
   signature: ^5.4.1
 
-flutter_icons:
+flutter_launcher_icons:
   image_path_android: "assets/icons/android-icon.png"
   image_path_ios: "assets/icons/ios-icon.png"
   android: true
   ios: true
   remove_alpha_ios: true
   windows:
+    generate: true
+    image_path: "assets/icons/ios-icon.png"
+  macos:
     generate: true
     image_path: "assets/icons/ios-icon.png"
 
