@@ -1,9 +1,11 @@
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:drag_pdf/common/colors/colors_app.dart';
 import 'package:drag_pdf/common/localization/localization.dart';
 import 'package:drag_pdf/components/components.dart';
 import 'package:drag_pdf/model/enums/loader_of.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../helper/dialogs/custom_dialog.dart';
 import '../../helper/helpers.dart';
@@ -19,6 +21,7 @@ class HomeScreenDesktop extends StatefulWidget {
 class _HomeScreenDesktopState extends State<HomeScreenDesktop>
     with WidgetsBindingObserver {
   final HomeViewModel viewModel = HomeViewModel();
+  bool _dragging = false;
 
   @override
   void initState() {
@@ -60,12 +63,20 @@ class _HomeScreenDesktopState extends State<HomeScreenDesktop>
     }
   }
 
-  Future<void> loadFilesOrImages(LoaderOf from) async {
+  Future<void> loadFilesOrImages(LoaderOf from, [List<XFile>? files]) async {
     setState(() {
       Loading.show();
     });
     try {
-      await viewModel.loadFilesFromStorage();
+      switch(from) {
+        case LoaderOf.filesFromFileSystem:
+          await viewModel.loadFilesFromStorage();
+        case LoaderOf.imagesFromGallery:
+          await viewModel.loadImagesFromStorage();
+        case LoaderOf.dragAndDrop:
+          viewModel.addDragAndDropFiles(files!);
+      }
+
     } catch (error) {
       final subtitle =
           error.toString().contains(HomeViewModel.extensionForbidden)
@@ -194,8 +205,30 @@ class _HomeScreenDesktopState extends State<HomeScreenDesktop>
                         });
                       },
                     )
-                  : Center(
-                      child: Image.asset('assets/images/files/file.png'),
+                  : DropTarget(
+                      onDragDone: (detail) {
+                        setState(() {
+                          loadFilesOrImages(LoaderOf.dragAndDrop, detail.files);
+                        });
+                      },
+                      onDragEntered: (detail) {
+                        setState(() {
+                          _dragging = true;
+                        });
+                      },
+                      onDragExited: (detail) {
+                        setState(() {
+                          _dragging = false;
+                        });
+                      },
+                      child: Container(
+                        color: _dragging
+                            ? Colors.blue.withOpacity(0.4)
+                            : Colors.black26,
+                        child: Center(
+                          child: Image.asset('assets/images/files/file.png'),
+                        ),
+                      ),
                     ),
               floatingActionButton: Visibility(
                 visible: viewModel.thereAreFilesLoaded(),

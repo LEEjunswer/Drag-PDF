@@ -1,3 +1,4 @@
+import 'package:drag_pdf/common/xfile_extension.dart';
 import 'package:drag_pdf/helper/file_manager.dart';
 import 'package:drag_pdf/helper/helpers.dart';
 import 'package:drag_pdf/model/enums/supported_file_type.dart';
@@ -11,7 +12,6 @@ class HomeViewModel {
   final List<String> allowedExtensions =
       SupportedFileTypeExtension.namesOfSupportedExtension();
 
-  String invalidFormat = "";
   static const String extensionForbidden = "Extension file forbidden: ";
 
   Future<void> loadFilesFromStorage() async {
@@ -21,18 +21,22 @@ class HomeViewModel {
       allowedExtensions: allowedExtensions,
     );
     _checkExtensionsFromPickFiles(result);
-    _mfl.addMultipleFiles(result?.files ?? [], _mfl.fileHelper.localPath);
+    _mfl.addMultipleFiles(result?.files ?? []);
   }
 
   void _checkExtensionsFromPickFiles(FilePickerResult? result) {
     if (result != null) {
       for (PlatformFile file in result.files) {
-        final extension = file.extension?.toLowerCase();
-        if (!allowedExtensions.contains(extension)) {
-          invalidFormat = extension ?? "unknown";
-          throw Exception(extensionForbidden + invalidFormat);
-        }
+        _checkAllowedExtensions(file.extension);
       }
+    }
+  }
+
+  void _checkAllowedExtensions(String? extension) {
+    if (extension == null) throw Exception('unknown');
+    final ext = extension.toLowerCase();
+    if (!allowedExtensions.contains(ext)) {
+      throw Exception(extensionForbidden + ext);
     }
   }
 
@@ -42,6 +46,13 @@ class HomeViewModel {
     List<FileRead> files =
         await IsolateHelper.createAddMultiplesImagesIsolate(images);
     _mfl.addFilesInMemory(files);
+  }
+
+  void addDragAndDropFiles(List<XFile> files) {
+    for (XFile file in files) {
+      _checkAllowedExtensions(file.extension);
+    }
+    _mfl.addMultipleXFiles(files);
   }
 
   FileManager getMergeableFilesList() => _mfl;

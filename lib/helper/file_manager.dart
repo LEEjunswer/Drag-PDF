@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cunning_document_scanner/cunning_document_scanner.dart';
+import 'package:drag_pdf/common/xfile_extension.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image/image.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,6 +11,7 @@ import 'package:drag_pdf/model/file_read.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../model/enums/supported_file_type.dart';
+import 'app_session.dart';
 
 class FileManager {
   final List<FileRead> _filesInMemory = [];
@@ -54,11 +56,20 @@ class FileManager {
 
   int numberOfFiles() => _filesInMemory.length;
 
-  List<FileRead> addMultipleFiles(List<PlatformFile> files, String localPath) {
+  List<FileRead> addMultipleFiles(List<PlatformFile> files) {
     for (PlatformFile file in files) {
       final fileRead = FileRead(File(file.path!), _nameOfNextFile(), null,
           file.size, file.extension?.toLowerCase() ?? "");
-      _addSingleFile(fileRead, localPath);
+      _addSingleFile(fileRead, AppSession.singleton.mfl.fileHelper.localPath);
+    }
+    return _filesInMemory;
+  }
+
+  List<FileRead> addMultipleXFiles(List<XFile> files) {
+    for (XFile file in files) {
+      final fileRead = FileRead(
+          File(file.path), _nameOfNextFile(), null, file.size, file.extension);
+      _addSingleFile(fileRead, AppSession.singleton.mfl.fileHelper.localPath);
     }
     return _filesInMemory;
   }
@@ -146,15 +157,15 @@ class FileManager {
     for (FileRead file in _filesInMemory) {
       final FileRead? intermediate = switch (file.getExtensionType()) {
         SupportedFileType.pdf => await PDFHelper.createPdfFromOtherPdf(
-              file, '${file.getFile().path}.pdf', '${file.getName()}.pdf'),
+            file, '${file.getFile().path}.pdf', '${file.getName()}.pdf'),
         SupportedFileType.png => await PDFHelper.createPdfFromImage(
-              file, '${file.getFile().path}.pdf', '${file.getName()}.pdf'),
+            file, '${file.getFile().path}.pdf', '${file.getName()}.pdf'),
         SupportedFileType.jpg => await PDFHelper.createPdfFromImage(
-              file, '${file.getFile().path}.pdf', '${file.getName()}.pdf'),
+            file, '${file.getFile().path}.pdf', '${file.getName()}.pdf'),
         SupportedFileType.jpeg => await PDFHelper.createPdfFromImage(
-              file, '${file.getFile().path}.pdf', '${file.getName()}.pdf'),
+            file, '${file.getFile().path}.pdf', '${file.getName()}.pdf'),
       };
-    intermediateFiles.add(intermediate!.getFile().path);
+      intermediateFiles.add(intermediate!.getFile().path);
     }
     FileRead fileRead = await PDFHelper.mergePdfDocuments(
         intermediateFiles, outputPath, nameOutputFile);

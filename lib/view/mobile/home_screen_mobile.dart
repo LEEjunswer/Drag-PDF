@@ -71,6 +71,8 @@ class _HomeScreenMobileState extends State<HomeScreenMobile>
           await viewModel.loadImagesFromStorage();
         case LoaderOf.filesFromFileSystem:
           await viewModel.loadFilesFromStorage();
+        case LoaderOf.dragAndDrop:
+          throw Exception('Drag and Drop not supported on mobile platform');
       }
     } catch (error) {
       final subtitle =
