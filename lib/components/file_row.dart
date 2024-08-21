@@ -21,7 +21,7 @@ class FileRow extends StatelessWidget {
       required this.renameButtonPressed,
       required this.removeButtonPressed,
       required this.rotateButtonPressed,
-      required this.resizeButtonPressed});
+      required this.resizeButtonPressed, required Text title});
 
   @override
   Widget build(BuildContext context) {

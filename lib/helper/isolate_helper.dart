@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:image_picker/image_picker.dart';
-
+import 'package:image/image.dart' as img;
 import '../model/models.dart';
 import 'helpers.dart';
 
@@ -154,4 +156,16 @@ class IsolateHelper {
       }
     }
   }
+
+  static FileRead createFileRead(File file) {
+    String fileName = file.path.split('/').last;
+    String extension = fileName.split('.').last;
+    int size = file.lengthSync();
+
+    img.Image? image = null;
+
+    // FileRead 객체 생성
+    return FileRead(file, fileName, image, size, extension);
+  }
+
 }

@@ -113,8 +113,9 @@ class FileManager {
     return names;
   }
 
-  Future<FileRead?> scanDocument() async {
+  Future<FileRead?> scanDocument(String barcode) async {
     FileRead? fileRead;
+    //getPickture가 스캔 사진
     List<String>? paths = await CunningDocumentScanner.getPictures();
     if (paths != null && paths.isNotEmpty) {
       final pdf = pw.Document();
@@ -130,11 +131,11 @@ class FileManager {
           );
         }));
       }
-      file = File('${fileHelper.localPath}${_nameOfNextFile()}');
+      file = File('${fileHelper.localPath}$barcode');
       await file.writeAsBytes(await pdf.save());
 
       final size = await file.length();
-      fileRead = FileRead(file, _nameOfNextFile(), null, size, "pdf");
+      fileRead = FileRead(file, barcode, null, size, "pdf");
       _addSingleFile(fileRead, fileHelper.localPath);
     }
     return fileRead;

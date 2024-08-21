@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drag_pdf/helper/file_manager.dart';
 import 'package:drag_pdf/helper/helpers.dart';
 import 'package:drag_pdf/model/enums/supported_file_type.dart';
@@ -14,14 +16,28 @@ class HomeViewModel {
   String invalidFormat = "";
   static const String extensionForbidden = "Extension file forbidden: ";
 
-  Future<void> loadFilesFromStorage() async {
+  Future<void> loadFilesFromStorage(String barcode) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
       type: FileType.custom,
       allowedExtensions: allowedExtensions,
     );
-    _checkExtensionsFromPickFiles(result);
-    _mfl.addMultipleFiles(result?.files ?? [], _mfl.fileHelper.localPath);
+
+    if (result == null || result.files.isEmpty) return;
+
+    List<FileRead> files = [];
+
+    for (int i = 0; i < result.files.length; i++) {
+      PlatformFile pickedFile = result.files[i];
+      String originalPath = pickedFile.path!;
+      String newPath = '${originalPath.substring(0, originalPath.lastIndexOf('/'))}/$barcode-${i + 1}.${pickedFile.extension}';
+
+      File renamedFile = await File(originalPath).rename(newPath);
+      FileRead fileRead = await IsolateHelper.createFileRead(renamedFile);
+      files.add(fileRead);
+    }
+
+    _mfl.addFilesInMemory(files);
   }
 
   void _checkExtensionsFromPickFiles(FilePickerResult? result) {
@@ -36,11 +52,31 @@ class HomeViewModel {
     }
   }
 
-  Future<void> loadImagesFromStorage() async {
+/*  Future<void> loadImagesFromStorage() async {
     final ImagePicker picker = ImagePicker();
     final List<XFile> images = await picker.pickMultiImage();
     List<FileRead> files =
         await IsolateHelper.createAddMultiplesImagesIsolate(images);
+    _mfl.addFilesInMemory(files);
+  }*/
+  Future<void> loadImagesFromStorage(String barcode) async {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile> images = await picker.pickMultiImage();
+
+    if (images.isEmpty) return;
+
+    List<FileRead> files = [];
+
+
+    for (int i = 0; i < images.length; i++) {
+      XFile image = images[i];
+      String newPath = '${image.path.substring(0, image.path.lastIndexOf('/'))}/$barcode-${i + 1}.${image.path.split('.').last}';
+      File renamedFile = await File(image.path).rename(newPath);
+      FileRead fileRead = await IsolateHelper.createFileRead(renamedFile);
+      files.add(fileRead);
+    }
+
+    await IsolateHelper.createAddMultiplesImagesIsolate(images);
     _mfl.addFilesInMemory(files);
   }
 
@@ -76,8 +112,8 @@ class HomeViewModel {
     await _mfl.renameFile(file, newName);
   }
 
-  Future<FileRead?> scanDocument() async {
-    return await _mfl.scanDocument();
+  Future<FileRead?> scanDocument(String barcode) async {
+    return await _mfl.scanDocument(barcode);
   }
 
   Future<FileRead> generatePreviewPdfDocument() async {
